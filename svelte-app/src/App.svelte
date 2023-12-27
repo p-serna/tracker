@@ -1,37 +1,31 @@
 <script>
-  import { onMount } from 'svelte';
-  import axios from 'axios';
-  import Login from './Login.svelte';
+  import {
+    Auth0Context, 
+    Auth0LoginButton, Auth0LogoutButton,
+    isAuthenticated,
+    userInfo
+  } from '@dopry/svelte-auth0';
+  import config from './auth_config.json';
 
-  let isAuthenticated = false;
-
-  onMount(async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-          try {
-              const response = await axios.get('http://localhost:8000/users/me', {
-                  headers: {
-                      Authorization: `Bearer ${token}`
-                  }
-              });
-              isAuthenticated = true;
-              // Set user data as needed
-          } catch (error) {
-              console.error(error);
-              isAuthenticated = false;
-          }
-      }
-  });
-
-  function logout() {
-      localStorage.removeItem('token');
-      isAuthenticated = false;
-  }
+const authConfig = {
+  domain: config.domain,
+  client_id: config.clientId,
+}
 </script>
 
-{#if isAuthenticated}
-  <p>User is authenticated</p>
-  <button on:click={logout}>Logout</button>
-{:else}
-  <Login />
-{/if}
+
+<Auth0Context domain={authConfig.domain} client_id={authConfig.client_id}>
+  <nav>
+    {#if $isAuthenticated}
+    Welcome {JSON.stringify($userInfo)}
+    <Auth0LogoutButton class="btn">
+      Logout
+    </Auth0LogoutButton>
+    {:else}
+    You are not logged in, please log in
+    <Auth0LoginButton class="btn btn-danger">
+      Login now
+    </Auth0LoginButton>
+    {/if}
+  </nav>
+</Auth0Context>
